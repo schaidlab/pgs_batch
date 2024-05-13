@@ -1,0 +1,7 @@
+batches/*
+results/*
+runs/*
+scoringfiles/*
+samplesheet_*.csv
+nextflow
+.nextflow*
