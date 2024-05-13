@@ -30,36 +30,6 @@ Results will appear in the `results` directory.
 Takes ~1hr to run for 500 PGS (1/10 batches) with the default config file.
 The `runs` directory is temporary and takes a lot of space. Best to remove subdirectories in `runs` after PGS have been computed.
 
-## Offline environment
-
-If working in an offline environment, and do the following steps in an online environment before moving to the offline environment transfer.
-
-1. Download all scoring files (see Step 2 in the example below).
-2. Download `pgsc_calc` and plugins:
-
-```bash
-# download pgsc_calc and unzip
-wget https://github.com/PGScatalog/pgsc_calc/archive/refs/tags/v2.0.0-alpha.5.zip
-unzip v2.0.0-alpha.5.zip
-
-export NXF_HOME="${PWD}/.nextflow"
-./nextflow plugin install nf-validation@1.1.3
-```
-
-3. Download `singularity` containers (also possible for [docker](https://pgsc-calc.readthedocs.io/en/latest/how-to/offline.html#docker)):
-
-```bash
-cd pgsc_calc-2.0.0-alpha.5
-NXF_SINGULARITY_CACHEDIR=nxf_sc
-mkdir -p $NXF_SINGULARITY_CACHEDIR
-grep 'ext.singularity*' conf/modules.config | cut -f 2 -d '=' | xargs -L 2 echo | tr -d ' ' > singularity_images.txt
-cat singularity_images.txt | sed 's/oras:\/\///;s/https:\/\///;s/\//-/g;s/$/.img/;s/:/-/' > singularity_image_paths.txt
-paste -d '\n' singularity_image_paths.txt singularity_images.txt | xargs -L 2 sh -c 'singularity pull --disable-cache --dir $NXF_SINGULARITY_CACHEDIR $0 $1'
-```
-
-4. Move everything (the pgs_batch directory) to the offline environment.
-5. Use `--offline` when running `Rscript pgs_batch.R calc`.
-
 ## Example
 
 ### Step 1: Specify number of batches
@@ -135,6 +105,36 @@ for i in {1..10}; do
     Rscript pgs_batch.R calc --id=cohort_name --target_build=GRCh37 --batch_id=${i} --profile=docker
 done
 ```
+
+## Offline environment
+
+If working in an offline environment, and do the following steps in an online environment before moving to the offline environment transfer.
+
+1. Download all scoring files (see Step 2 in the example below).
+2. Download `pgsc_calc` and plugins:
+
+```bash
+# download pgsc_calc and unzip
+wget https://github.com/PGScatalog/pgsc_calc/archive/refs/tags/v2.0.0-alpha.5.zip
+unzip v2.0.0-alpha.5.zip
+
+export NXF_HOME="${PWD}/.nextflow"
+./nextflow plugin install nf-validation@1.1.3
+```
+
+3. Download `singularity` containers (also possible for [docker](https://pgsc-calc.readthedocs.io/en/latest/how-to/offline.html#docker)):
+
+```bash
+cd pgsc_calc-2.0.0-alpha.5
+NXF_SINGULARITY_CACHEDIR=nxf_sc
+mkdir -p $NXF_SINGULARITY_CACHEDIR
+grep 'ext.singularity*' conf/modules.config | cut -f 2 -d '=' | xargs -L 2 echo | tr -d ' ' > singularity_images.txt
+cat singularity_images.txt | sed 's/oras:\/\///;s/https:\/\///;s/\//-/g;s/$/.img/;s/:/-/' > singularity_image_paths.txt
+paste -d '\n' singularity_image_paths.txt singularity_images.txt | xargs -L 2 sh -c 'singularity pull --disable-cache --dir $NXF_SINGULARITY_CACHEDIR $0 $1'
+```
+
+4. Move everything (the pgs_batch directory) to the offline environment.
+5. Use `--offline` when running `Rscript pgs_batch.R calc`.
 
 ## Computing cluster
 
