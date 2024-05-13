@@ -37,6 +37,11 @@ if (is.null(a$dir)) {
     a$dir <- getwd()
 }
 
+fs::dir_create(str_glue("{a$dir}/batches"))
+fs::dir_create(str_glue("{a$dir}/results"))
+fs::dir_create(str_glue("{a$dir}/runs"))
+fs::dir_create(str_glue("{a$dir}/scoringfiles"))
+
 nextflow <- stringr::str_glue("{a$dir}/nextflow")
 pgsc_calc <- "pgscatalog/pgsc_calc -r v2.0.0-alpha.5"
 if (a$offline) {
