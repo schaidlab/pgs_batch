@@ -132,6 +132,7 @@ run_calc <- function(a) {
 
     setwd(dir_runs)
 
+    nxf_plugins_pin <- ""
     if (a$offline) {
         nxf_plugins_pin <- stringr::str_glue(" -plugins nf-validation@1.1.3")
     }
