@@ -130,7 +130,7 @@ NXF_SINGULARITY_CACHEDIR=nxf_sc
 mkdir -p $NXF_SINGULARITY_CACHEDIR
 grep 'ext.singularity*' conf/modules.config | cut -f 2 -d '=' | xargs -L 2 echo | tr -d ' ' > singularity_images.txt
 cat singularity_images.txt | sed 's/oras:\/\///;s/https:\/\///;s/\//-/g;s/$/.img/;s/:/-/' > singularity_image_paths.txt
-paste -d '\n' singularity_image_paths.txt singularity_images.txt | xargs -L 2 sh -c 'singularity pull --disable-cache --dir $NXF_SINGULARITY_CACHEDIR $0 $1'
+paste singularity_image_paths.txt singularity_images.txt | while read -a line; do singularity pull --disable-cache --dir $NXF_SINGULARITY_CACHEDIR ${line[0]} ${line[1]}; done
 ```
 
 4. Move everything (the pgs_batch directory) to the offline environment.
