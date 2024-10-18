@@ -1,9 +1,13 @@
+# TODO remove builds that are not allowed, e.g., scoringfiles/batch1/PGS000192_hmPOS_GRCh37.txt.gz:#genome_build=NCBI35
+# TODO X chromosome
+
 "
 Usage:
   pgs_batch.R batch (--n_batches=<n_batches> | --n_per_batch=<n_per_batch>) [--dir=<dir> --force]
   pgs_batch.R download --batch_id=<batch_id> [--dir=<dir> --target_build=<target_build> --resume]
   pgs_batch.R create_samplesheet --id=<id> --genos_path_prefix=<genos_path_prefix> --format=<format> [--dir=<dir> --genos_single_file]
   pgs_batch.R calc --id=<id> --batch_id=<batch_id> [--dir=<dir> --profile=<profile> --target_build=<target_build> --min_overlap=<min_overlap> --max_cpus=<max_cpus> --max_memory=<max_memory> --custom_config --resume --extra_args=<extra_args> --offline]
+  pgs_batch.R get_ancestry_reference (--1kg | --1kg_hgdp) [--dir=<dir>]
   pgs_batch.R (-h | --help)
   pgs_batch.R --version
 
@@ -27,6 +31,8 @@ Options:
   --max_memory=<max_memory>               [default: 16.GB].
   --extra_args=<extra_args>               Specify arbitrary pgsc_calc parameters. Details: https://pgsc-calc.readthedocs.io/en/latest/reference/params.html.
   --offline                               Use if working in an offline environment. Make sure to download containers first (see docs).
+  --1kg                                   Download 1kg reference dataset in get_ancestry_reference
+  --1kg_hgdp                              Download 1kg+hgdp reference dataset in get_ancestry_reference
 
 " -> doc
 
@@ -42,14 +48,18 @@ fs::dir_create(stringr::str_glue("{a$dir}/results"))
 fs::dir_create(stringr::str_glue("{a$dir}/runs"))
 fs::dir_create(stringr::str_glue("{a$dir}/scoringfiles"))
 
-nextflow <- stringr::str_glue("{a$dir}/nextflow")
-pgsc_calc <- "pgscatalog/pgsc_calc -r v2.0.0-alpha.5"
+# FIXME version
+nextflow <- stringr::str_glue("export NXF_VER=\"24.09.2-edge\"; {a$dir}/nextflow")
+pgsc_calc_version = "v2.0.0-beta.3"
+pgsc_calc <- "pgscatalog/pgsc_calc -r {pgsc_calc_version}"
+# pgsc_calc <- "pgscatalog/pgsc_calc"
+# FIXME?
 if (a$offline) {
-    if (!fs::dir_exists(stringr::str_glue("{a$dir}/pgsc_calc-2.0.0-alpha.5"))) {
-        stop("pgsc_calc-2.0.0-alpha.5 directory doesn't exist. Follow the docs (under 'Offline')")
+    if (!fs::dir_exists(stringr::str_glue("{a$dir}/pgsc_calc-{pgsc_calc_version}"))) {
+        stop("pgsc_calc-{pgsc_calc_version} directory doesn't exist. Follow the docs (under 'Offline')")
     }
-    nxf_sc_export <- stringr::str_glue("export NXF_SINGULARITY_CACHEDIR={a$dir}/pgsc_calc-2.0.0-alpha.5/nxf_sc")
-    pgsc_calc <- stringr::str_glue("{a$dir}/pgsc_calc-2.0.0-alpha.5/main.nf")
+    nxf_sc_export <- stringr::str_glue("export NXF_SINGULARITY_CACHEDIR={a$dir}/pgsc_calc-{pgsc_calc_version}/nxf_sc")
+    pgsc_calc <- stringr::str_glue("{a$dir}/pgsc_calc-2.0.0-{pgsc_calc_version}/main.nf")
 }
 pgsc_calc_metadata <- stringr::str_glue("{a$dir}/pgs_all_metadata_scores_20240510.csv")
 
@@ -123,6 +133,23 @@ create_samplesheet <- function(a) {
     data.table::fwrite(samplesheet, out_path, sep = ",")
 }
 
+# TODO check if these files exist in run_calc and throw error if not
+# TODO also allow 1kg+hgdp
+# TODO allow to point to ancestry ref database
+get_ancestry_reference = function(a) {
+    if (a$`1kg`) {
+        download_path = "https://ftp.ebi.ac.uk/pub/databases/spot/pgs/resources/pgsc_1000G_v1.tar.zst"
+        cat(stringr::str_glue("Downloading 1kg reference dataset at {download_path}"), "\n", sep = "")
+    }
+    if (a$`1kg_hgdp`) {
+        download_path = "https://ftp.ebi.ac.uk/pub/databases/spot/pgs/resources/pgsc_HGDP+1kGP_v1.tar.zst"
+        cat(stringr::str_glue("Downloading 1kg+hgdp reference dataset at {download_path}"), "\n", sep = "")
+    }
+    destfile = stringr::str_glue("{a$dir}/{basename(download_path)}")
+    curl::curl_download(url = download_path, destfile = destfile)
+}
+
+# TODO if ref dataset does not exist with run_ancestry, throw error and suggest get_ancestry_reference function
 run_calc <- function(a) {
     pgsc_calc_input <- stringr::str_glue("{a$dir}/samplesheet_{a$id}.csv")
     pgsc_calc_scores <- stringr::str_glue("--scorefile \"{a$dir}/scoringfiles/batch{a$batch_id}/*{a$target_build}.txt.gz\"")
@@ -161,4 +188,7 @@ if (a$create_samplesheet) {
 }
 if (a$calc) {
     run_calc(a)
+}
+if (a$get_ancestry_reference) {
+    get_ancestry_reference(a)
 }

@@ -5,3 +5,4 @@ scoringfiles/*
 samplesheet_*.csv
 nextflow
 .nextflow*
+pgsc_1000G_v1.tar.zst
