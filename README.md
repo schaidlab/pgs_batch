@@ -1,6 +1,6 @@
 # pgs_batch
 
-A script to run PGS from the PGS Catalog in batches using the `nextflow` pipeline `pgsc_calc` (v2.0.0-beta.3).
+A script to run PGS from the PGS Catalog in batches using the `nextflow` pipeline `pgsc_calc` (v2.0.0).
 Uses scoring files from the PGS Catalog downloaded on 2024/05/10 (n=4735).
 
 ## Dependencies
@@ -108,24 +108,26 @@ done
 
 ## Offline environment
 
-If working in an offline environment, and do the following steps in an online environment before moving to the offline environment transfer.
+If working in an offline environment, run the following steps in an online environment before transferring to the offline environment.
 
 1. Download all scoring files (see Step 2 in the example below).
 2. Download `pgsc_calc` and plugins:
 
 ```bash
 # download pgsc_calc and unzip
-wget https://github.com/PGScatalog/pgsc_calc/archive/refs/tags/v2.0.0-beta.3.zip
-unzip v2.0.0-beta.3.zip
+wget https://github.com/PGScatalog/pgsc_calc/archive/refs/tags/v2.0.0.zip
+unzip v2.0.0.zip
 
 export NXF_HOME="${PWD}/.nextflow"
 ./nextflow plugin install nf-validation@1.1.3
+./nextflow plugin install nf-schema@2.0.0
+./nextflow plugin install nf-prov@1.2.2
 ```
 
 3. Download `singularity` containers (also possible for [docker](https://pgsc-calc.readthedocs.io/en/latest/how-to/offline.html#docker)):
 
 ```bash
-cd pgsc_calc-2.0.0-beta.3
+cd pgsc_calc-2.0.0
 NXF_SINGULARITY_CACHEDIR=nxf_sc
 mkdir -p $NXF_SINGULARITY_CACHEDIR
 grep 'ext.singularity*' conf/modules.config | cut -f 2 -d '=' | xargs -L 2 echo | tr -d ' ' > singularity_images.txt
@@ -180,3 +182,5 @@ export NXF_OPTS="-Xms1G -Xmx4G"
 - arg checks
 - combine results + QC metrics
 - delete runs subdirs on completion unless flag
+- add install_singularity.sh script
+- use params file
