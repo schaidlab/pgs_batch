@@ -3,6 +3,7 @@
 A script to run PGS from the PGS Catalog in batches using the `nextflow` pipeline `pgsc_calc` (v2.0.0).
 Uses scoring files from the PGS Catalog downloaded on 2024/05/10 (n=4735).
 
+
 ## Dependencies
 - java v8+
 	- If having trouble with java when running the scripts below, export these variables `export JAVA_HOME=/path/to/java` and `export NXF_JAVA_HOME=/path/to/java`
